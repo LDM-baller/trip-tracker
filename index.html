@@ -375,6 +375,16 @@ $("nameBtn").addEventListener("click",()=>{
   if(n!==null){localStorage.setItem("trav",n.trim());applyName();render();}
 });
 
+/* ---------- secret arcade unlock: tap the flag 5× fast ---------- */
+let tapN=0,tapT=0;
+$("heroFlag").style.cursor="default";
+$("heroFlag").addEventListener("click",()=>{
+  const now=Date.now();
+  tapN=(now-tapT<700)?tapN+1:1; tapT=now;
+  if(navigator.vibrate) navigator.vibrate(8);
+  if(tapN>=5){ if(navigator.vibrate) navigator.vibrate([20,40,30]); location.href="tetris.html"; }
+});
+
 /* ---------- weather (Open-Meteo, no key) ---------- */
 const wxCache={};
 async function loadWeather(day){
