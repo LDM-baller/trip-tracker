@@ -157,6 +157,7 @@
 
 <script>
 const COLS=10, ROWS=20;
+const WIN_LINES=10;   // clear this many lines to win
 const COLORS={I:"#2EE6E6",O:"#F4D03F",T:"#B259E6",S:"#46E66B",Z:"#FF5C6C",J:"#4C7CFF",L:"#FF9F45"};
 const SHAPES={
   I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -173,13 +174,13 @@ const KICKS=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 const CATS_HTML='<div class="catwrap"><img class="cat" src="cat1.png" alt="Gigi"><span class="catname">Gigi</span></div><div class="catwrap"><img class="cat" src="cat2.png" alt="JJ"><span class="catname">JJ</span></div>';
 const CHEERS=["GOOD GAME!","NICE ONE!","WOOHOO!","PURRFECT!","YOU ROCK!","DANCE TIME!"];
 let catTimer;
-function celebrate(msg){
+function celebrate(msg,dur){
   $("cap").textContent=msg||CHEERS[(Math.random()*CHEERS.length)|0];
   const el=$("catShow"); el.classList.remove("hide"); void el.offsetWidth; el.classList.add("on");
   spawnConfetti();
   if(soundOn) chord([523,659,784,1047,1319],.22);
   clearTimeout(catTimer);
-  catTimer=setTimeout(()=>{ el.classList.remove("on"); el.classList.add("hide"); },3800);
+  catTimer=setTimeout(()=>{ el.classList.remove("on"); el.classList.add("hide"); },dur||3800);
 }
 function spawnConfetti(){
   const box=$("confetti"), cols=["#2EE6E6","#FF4DD2","#F4D03F","#46E66B","#FF9F45","#4C7CFF"];
@@ -286,7 +287,7 @@ function lock(){
   }
   SND.lock();
   clearLines();
-  spawn();
+  if(running) spawn();
 }
 function clearLines(){
   let cleared=[];
@@ -298,11 +299,13 @@ function clearLines(){
   const n=cleared.length;
   score += [0,100,300,500,800][n]*level;
   lines += n;
+  const prevLines=lines-n;
   const nl=Math.floor(lines/10)+1;
   if(nl>level){level=nl;dropMs=Math.max(80,Math.round(1000*Math.pow(0.82,level-1)));SND.level();}
   $("flash").classList.remove("on"); void $("flash").offsetWidth; $("flash").classList.add("on");
   SND.clear(n);
   updateHUD();
+  if(!gameover && Math.floor(prevLines/WIN_LINES)!==Math.floor(lines/WIN_LINES)) winMilestone();
 }
 function burst(c,r,color){
   const cx=c*BLK+BLK/2, cy=r*BLK+BLK/2;
@@ -358,7 +361,7 @@ function drawNext(){
   }
 }
 function updateHUD(){
-  $("score").textContent=score; $("lines").textContent=lines; $("level").textContent=level;
+  $("score").textContent=score; $("level").textContent=level; $("lines").textContent=lines;
   if(score>best){best=score;localStorage.setItem("arcadeBest",best);}
 }
 
@@ -394,6 +397,11 @@ function endGame(){
   $("playBtn").textContent="PLAY AGAIN ▸";
   $("overlay").classList.remove("hide");
   celebrate(score>runStartBest && score>0 ? "NEW HIGH SCORE!" : "GOOD GAME!");  // cats dance after every game
+}
+function winMilestone(){
+  paused=true;                              // freeze the board so the dance can't kill you
+  celebrate("YOU WIN! 🏆", 2700);
+  setTimeout(()=>{ if(running){ paused=false; lastT=performance.now(); } }, 2700);
 }
 function togglePause(){
   if(!running) return;
@@ -456,7 +464,7 @@ document.addEventListener("keydown",e=>{
   $("cats").innerHTML=CATS_HTML;
   const nm=(localStorage.getItem("trav")||"").trim();
   $("ovTitle").textContent="BLOCKS";
-  $("ovSub").innerHTML=(nm?`Hey ${nm} — `:"")+"neon retro Tetris.<br/>Best so far: <b>"+best+"</b>";
+  $("ovSub").innerHTML=(nm?`Hey ${nm} — `:"")+"neon retro Tetris.<br/>Win every "+WIN_LINES+" lines you clear! · Best <b>"+best+"</b>";
   sizeCanvas();
 })();
 </script>
