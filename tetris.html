@@ -96,9 +96,13 @@
   .catshow .cats{display:flex;gap:4px;align-items:flex-end;transform:translateY(135%)}
   .catshow.on .cats{animation:catsIn .55s cubic-bezier(.2,1.3,.4,1) forwards}
   @keyframes catsIn{to{transform:translateY(0)}}
-  .cat{width:auto;height:clamp(150px,34vh,300px);transform-origin:bottom center;
+  .catwrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .cat{width:auto;height:auto;max-height:clamp(140px,30vh,270px);max-width:44vw;transform-origin:bottom center;
     filter:drop-shadow(0 8px 12px rgba(0,0,0,.55));animation:catDance .9s ease-in-out infinite}
-  .cats .cat:nth-child(2){animation-delay:-.45s}
+  .cats .catwrap:nth-child(2) .cat{animation-delay:-.45s}
+  .catname{font-weight:800;letter-spacing:.1em;font-size:15px;
+    background:linear-gradient(90deg,var(--neon),var(--neon2));-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 14px rgba(46,230,230,.4)}
   @keyframes catDance{
     0%{transform:translateY(0) rotate(-5deg) scaleY(1)}
     25%{transform:translateY(-16px) rotate(4deg) scaleY(1.05)}
@@ -166,7 +170,7 @@ const SHAPES={
 const KICKS=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 
 /* ---------- the cats (real photo cut-outs) ---------- */
-const CATS_HTML='<img class="cat" src="cat1.png" alt="cat"><img class="cat" src="cat2.png" alt="cat">';
+const CATS_HTML='<div class="catwrap"><img class="cat" src="cat1.png" alt="Gigi"><span class="catname">Gigi</span></div><div class="catwrap"><img class="cat" src="cat2.png" alt="JJ"><span class="catname">JJ</span></div>';
 const CHEERS=["GOOD GAME!","NICE ONE!","WOOHOO!","PURRFECT!","YOU ROCK!","DANCE TIME!"];
 let catTimer;
 function celebrate(msg){
