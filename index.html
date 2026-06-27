@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E1A2B" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Following the Journey</title>
+<meta name="description" content="A private tracker for a 25-day teen tour through Iceland, Norway, Denmark & Greece." />
+<style>
+  :root{
+    --ink:#0E1A2B; --ink-2:#0A1422;
+    --panel:#16263B; --panel-2:#1D324C; --line:#26405E;
+    --hi:#F2F6FB; --mid:#9DB2CC; --low:#6E84A0;
+    --accent:#6FC6EA; --accent-soft:rgba(111,198,234,.16);
+    --good:#79D9A6; --sleep:#7E8DA8;
+    --serif:"Palatino Linotype","Iowan Old Style","Hoefler Text",Palatino,Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --pad:clamp(16px,5vw,28px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--ink); color:var(--hi); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    min-height:100dvh;
+    background-image:radial-gradient(120% 60% at 50% -10%, rgba(111,198,234,.10), transparent 60%);
+    transition:background-image .8s ease;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 48px}
+  .num{font-variant-numeric:tabular-nums}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--low);font-weight:600}
+
+  /* ---------- masthead ---------- */
+  header.mast{padding:22px var(--pad) 8px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .mast .title{font-family:var(--serif);font-size:19px;letter-spacing:.01em;line-height:1.15}
+  .mast .title small{display:block;color:var(--mid);font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px}
+  .nameBtn{background:var(--panel);border:1px solid var(--line);color:var(--hi);border-radius:999px;
+    padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
+  .nameBtn:active{transform:scale(.97)}
+
+  /* ---------- hero ---------- */
+  .hero{margin:6px var(--pad) 0;background:linear-gradient(180deg,var(--panel),var(--ink-2));
+    border:1px solid var(--line);border-radius:22px;padding:22px 20px 20px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 70% at 85% 0%,var(--accent-soft),transparent 70%);
+    pointer-events:none;transition:background .8s ease}
+  .hero .where{position:relative}
+  .hero .flag{font-size:34px;line-height:1}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,11vw,52px);line-height:.98;letter-spacing:-.01em;text-wrap:balance;margin:8px 0 2px}
+  .hero .country{color:var(--mid);font-size:14px;letter-spacing:.04em}
+  .hero .daychip{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accent-soft);
+    color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
+    padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.03em}
+
+  /* clocks */
+  .clocks{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .clock{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+  .clock .lbl{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--low);font-weight:600}
+  .clock .t{font-size:24px;font-weight:600;margin-top:3px;letter-spacing:.01em}
+  .clock .t .ap{font-size:13px;color:var(--mid);font-weight:600;margin-left:3px}
+  .clock .sub{font-size:11.5px;color:var(--mid);margin-top:1px}
+  .reach{position:relative;margin-top:12px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--mid)}
+  .reach .dot{width:8px;height:8px;border-radius:50%;background:var(--sleep);flex:none}
+  .reach.ok .dot{background:var(--good);box-shadow:0 0 0 4px rgba(121,217,166,.18)}
+  .reach.ok{color:var(--good)}
+
+  /* today plan */
+  .plan{position:relative;margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .plan .eyebrow{margin-bottom:9px}
+  .plan ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .plan li{display:flex;gap:10px;font-size:14.5px;color:var(--hi)}
+  .plan li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:8px}
+
+  /* ---------- progress rail ---------- */
+  .rail{margin:20px var(--pad) 0}
+  .rail .bar{height:6px;border-radius:6px;background:var(--panel);overflow:hidden;border:1px solid var(--line)}
+  .rail .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#6FC6EA,#4F93C4,#74B6AC,#2F86D1,#F0A24E);transition:width .6s ease}
+  .rail .stops{display:flex;justify-content:space-between;margin-top:10px;gap:4px}
+  .stop{flex:1;text-align:center;font-size:11px;color:var(--low);font-weight:600;letter-spacing:.02em;opacity:.55;transition:opacity .3s,color .3s}
+  .stop .em{font-size:17px;display:block;line-height:1.4;filter:grayscale(.5)}
+  .stop.on{opacity:1;color:var(--hi)}
+  .stop.on .em{filter:none}
+  .stop.done{opacity:.8}
+
+  /* ---------- timeline ---------- */
+  .tl{margin:28px var(--pad) 0}
+  .tl > .eyebrow{margin-bottom:12px;padding-left:2px}
+  .day{position:relative;border:1px solid var(--line);border-radius:18px;background:var(--panel);
+    padding:15px 16px 15px;margin-bottom:12px;scroll-margin-top:14px}
+  .day::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:4px;background:var(--c,#92A8C6);opacity:.9}
+  .day.past{opacity:.5}
+  .day.now{border-color:color-mix(in srgb,var(--c) 60%,var(--line));box-shadow:0 0 0 1px var(--c),0 10px 30px -12px var(--c)}
+  .day .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-left:10px}
+  .day .date{font-size:12.5px;color:var(--mid);font-weight:600;letter-spacing:.02em}
+  .day .dnum{font-size:11px;color:var(--low);font-weight:700;letter-spacing:.06em}
+  .day .city{padding-left:10px;font-family:var(--serif);font-size:22px;font-weight:600;margin:4px 0 2px;display:flex;align-items:center;gap:8px}
+  .day .city .fg{font-size:18px}
+  .day.now .city .badge{font-family:var(--sans);font-size:10px;font-weight:800;letter-spacing:.1em;background:var(--c);color:#08121f;padding:3px 8px;border-radius:999px;margin-left:2px}
+  .day .hotel{padding-left:10px;font-size:12px;color:var(--low);margin-bottom:9px}
+  .day .hotel b{color:var(--mid);font-weight:600}
+  .day .acts{padding-left:10px;display:flex;flex-direction:column;gap:6px}
+  .day .acts div{font-size:13.5px;color:var(--mid);display:flex;gap:8px}
+  .day .acts div::before{content:"–";color:var(--c);flex:none}
+  .day.now .acts div{color:var(--hi)}
+
+  footer{margin:26px var(--pad) 0;text-align:center;color:var(--low);font-size:11.5px;line-height:1.7}
+  footer .eyebrow{margin-bottom:6px}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="title">Following the Journey<small id="route">Iceland · Norway · Denmark · Greece</small></div>
+    <button class="nameBtn" id="nameBtn">Set name</button>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="where">
+      <div class="flag" id="heroFlag">✈️</div>
+      <h1 id="heroCity">Loading…</h1>
+      <div class="country" id="heroCountry"></div>
+      <div class="daychip" id="dayChip">—</div>
+    </div>
+    <div class="clocks">
+      <div class="clock">
+        <div class="lbl" id="hisLbl">His time</div>
+        <div class="t num" id="hisTime">—</div>
+        <div class="sub" id="hisSub"></div>
+      </div>
+      <div class="clock">
+        <div class="lbl">Your time</div>
+        <div class="t num" id="yourTime">—</div>
+        <div class="sub" id="yourSub">at home</div>
+      </div>
+    </div>
+    <div class="reach" id="reach"><span class="dot"></span><span id="reachTxt"></span></div>
+    <div class="plan" id="planWrap">
+      <div class="eyebrow" id="planLbl">Today's plan</div>
+      <ul id="planList"></ul>
+    </div>
+  </section>
+
+  <section class="rail">
+    <div class="bar"><div class="fill" id="fill" style="width:0%"></div></div>
+    <div class="stops" id="stops"></div>
+  </section>
+
+  <section class="tl">
+    <div class="eyebrow">The whole trip</div>
+    <div id="timeline"></div>
+  </section>
+
+  <footer>
+    <div class="eyebrow">Westcoast Connection · Program ICE1</div>
+    25 days · 4 countries · home July 21<br/>
+    Times update live. Tap the name to make it his.
+  </footer>
+</div>
+
+<script>
+/* ---------- itinerary data ---------- */
+const ACCENTS={transit:"#92A8C6",iceland:"#6FC6EA",norway:"#4F93C4",denmark:"#74B6AC",greece:"#2F86D1",santorini:"#F0A24E"};
+const DAYS=[
+ {d:"2026-06-27",city:"On the way",country:"Overnight flight to Reykjavík",flag:"✈️",fg:"✈️",tz:null,hotel:null,phase:"transit",acc:"transit",
+  acts:["Overnight flight to Reykjavík"]},
+ {d:"2026-06-28",city:"Reykjavík",country:"Iceland",flag:"🇮🇸",fg:"🇮🇸",tz:"Atlantic/Reykjavik",hotel:"Hotel Frón",phase:"iceland",acc:"iceland",
+  acts:["Arrive in Reykjavík","Welcome, orientation & get-to-know-you games","Reykjavík sightseeing tour","Welcome dinner"]},
+ {d:"2026-06-29",city:"Reykjavík",country:"Iceland",flag:"🇮🇸",fg:"🇮🇸",tz:"Atlantic/Reykjavik",hotel:"Hotel Frón",phase:"iceland",acc:"iceland",
+  acts:["Glacier mountaineering with crampons on Sólheimajökull","South Coast — Seljalandsfoss & Skógafoss waterfalls","Dyrhólaey & the black sand beach"]},
+ {d:"2026-06-30",city:"Reykjavík",country:"Iceland",flag:"🇮🇸",fg:"🇮🇸",tz:"Atlantic/Reykjavik",hotel:"Hotel Frón",phase:"iceland",acc:"iceland",
+  acts:["Golden Circle — Þingvellir, Geysir & Gullfoss","Whitewater rafting on the Hvítá River"]},
+ {d:"2026-07-01",city:"Reykjavík",country:"Iceland",flag:"🇮🇸",fg:"🇮🇸",tz:"Atlantic/Reykjavik",hotel:"Hotel Frón",phase:"iceland",acc:"iceland",
+  acts:["Whale watching off Reykjavík","Relax in the Blue Lagoon thermal hot springs"]},
+ {d:"2026-07-02",city:"Oslo",country:"Norway",flag:"🇳🇴",fg:"🇳🇴",tz:"Europe/Oslo",hotel:"Radisson Blu Scandinavia",phase:"norway",acc:"norway",
+  acts:["Fly to Oslo · IcelandAir FI 322 (10:40→15:25)","Explore Oslo"]},
+ {d:"2026-07-03",city:"Oslo",country:"Norway",flag:"🇳🇴",fg:"🇳🇴",tz:"Europe/Oslo",hotel:"Radisson Blu Scandinavia",phase:"norway",acc:"norway",
+  acts:["Oslo sightseeing tour","Kollensvevet zipline"]},
+ {d:"2026-07-04",city:"Oslo",country:"Norway",flag:"🇳🇴",fg:"🇳🇴",tz:"Europe/Oslo",hotel:"Radisson Blu Scandinavia",phase:"norway",acc:"norway",
+  acts:["Kon-Tiki Museum","SkiMore climbing park","Viking Planet VR experience"]},
+ {d:"2026-07-05",city:"Oslo",country:"Norway",flag:"🇳🇴",fg:"🇳🇴",tz:"Europe/Oslo",hotel:"Radisson Blu Scandinavia",phase:"norway",acc:"norway",
+  acts:["Guided hike of Malmøya island","Floating saunas on the Oslo Fjord","RIB fjord safari","Evening in Oslo"]},
+ {d:"2026-07-06",city:"Overnight ferry",country:"Oslo → Copenhagen",flag:"⛴️",fg:"⛴️",tz:"Europe/Oslo",hotel:"DFDS Seaways ferry",phase:"denmark",acc:"transit",
+  acts:["MUNCH Museum","Board the overnight ferry","Evening activity on the ferry"]},
+ {d:"2026-07-07",city:"Copenhagen",country:"Denmark",flag:"🇩🇰",fg:"🇩🇰",tz:"Europe/Copenhagen",hotel:"BW Hotel Hebron",phase:"denmark",acc:"denmark",
+  acts:["Arrive in Copenhagen","Sightseeing walking tour","Canal cruise & bike tour","Dinner in Nyhavn"]},
+ {d:"2026-07-08",city:"Copenhagen",country:"Denmark",flag:"🇩🇰",fg:"🇩🇰",tz:"Europe/Copenhagen",hotel:"BW Hotel Hebron",phase:"denmark",acc:"denmark",
+  acts:["Kayaking in Stege Bay","Afternoon & evening at Tivoli Gardens","The Little Mermaid statue"]},
+ {d:"2026-07-09",city:"Copenhagen",country:"Denmark",flag:"🇩🇰",fg:"🇩🇰",tz:"Europe/Copenhagen",hotel:"BW Hotel Hebron",phase:"denmark",acc:"denmark",
+  acts:["Day trip to the Møns Klint cliffs"]},
+ {d:"2026-07-10",city:"Copenhagen",country:"Denmark",flag:"🇩🇰",fg:"🇩🇰",tz:"Europe/Copenhagen",hotel:"BW Hotel Hebron",phase:"denmark",acc:"denmark",
+  acts:["National Museum of Denmark","Free time in Copenhagen"]},
+ {d:"2026-07-11",city:"Athens",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Athenian Callirhoe Hotel",phase:"greece",acc:"greece",
+  acts:["Fly to Athens · SAS 2777 (16:25→20:45)","Free time in the Plaka neighborhood"]},
+ {d:"2026-07-12",city:"Athens",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Athenian Callirhoe Hotel",phase:"greece",acc:"greece",
+  acts:["Sailing cruise off Alimos","Explore Athens","Rooftop group dinner with an Acropolis view"]},
+ {d:"2026-07-13",city:"Athens",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Athenian Callirhoe Hotel",phase:"greece",acc:"greece",
+  acts:["Sleep in","Guided Acropolis tour & Acropolis Museum","Evening in the Plaka district"]},
+ {d:"2026-07-14",city:"Paros",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Narges Hotel",phase:"greece",acc:"greece",
+  acts:["Ferry to Paros","Sunset cruise in Aliki","WCC evening program"]},
+ {d:"2026-07-15",city:"Paros",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Narges Hotel",phase:"greece",acc:"greece",
+  acts:["Greek cooking class in Arezina village","Explore the town of Naoussa","Group dinner"]},
+ {d:"2026-07-16",city:"Paros",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Narges Hotel",phase:"greece",acc:"greece",
+  acts:["Tubing, paddleboarding & kayaking at Antiparos","Beach day","Explore Parikia"]},
+ {d:"2026-07-17",city:"Santorini",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Rosebay Hotel",phase:"greece",acc:"santorini",
+  acts:["Ferry to Santorini","Discover Fira town"]},
+ {d:"2026-07-18",city:"Santorini",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Rosebay Hotel",phase:"greece",acc:"santorini",
+  acts:["Beach time & sea kayaking","Sunset dinner in Oia"]},
+ {d:"2026-07-19",city:"Santorini",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Rosebay Hotel",phase:"greece",acc:"santorini",
+  acts:["Cable car & boat ride to the volcano","Swim in the hot springs","Caldera sunset from the cliffs of Fira"]},
+ {d:"2026-07-20",city:"Athens",country:"Greece",flag:"🇬🇷",fg:"🇬🇷",tz:"Europe/Athens",hotel:"Athenian Callirhoe Hotel",phase:"greece",acc:"greece",
+  acts:["Ferry back to Athens","Farewell rooftop dinner & banquet"]},
+ {d:"2026-07-21",city:"Heading home",country:"Fly home",flag:"🏡",fg:"🏡",tz:null,hotel:null,phase:"greece",acc:"transit",
+  acts:["Fly home"]},
+];
+const STOPS=[{em:"✈️",n:"Go",phase:"transit"},{em:"🇮🇸",n:"Iceland",phase:"iceland"},{em:"🇳🇴",n:"Norway",phase:"norway"},{em:"🇩🇰",n:"Denmark",phase:"denmark"},{em:"🇬🇷",n:"Greece",phase:"greece"}];
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const ymd=dt=>dt.toLocaleDateString("en-CA"); // YYYY-MM-DD in local tz
+function timeIn(tz,now){
+  const f=new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",minute:"2-digit",hour12:true});
+  return f.format(now);
+}
+function hourIn(tz,now){
+  return +new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",hour12:false}).format(now)%24;
+}
+function splitAP(s){const m=s.match(/(.*?)(\s?[AP]M)$/i);return m?[m[1].trim(),m[2].trim()]:[s,""];}
+
+/* ---------- name ---------- */
+function travelerName(){return localStorage.getItem("trav")||"";}
+function applyName(){
+  const n=travelerName();
+  $("nameBtn").textContent=n?("✦ "+n):"Set name";
+  document.title=n?("Following "+n):"Following the Journey";
+}
+$("nameBtn").addEventListener("click",()=>{
+  const n=prompt("Whose trip is this? (stays only on this phone)",travelerName());
+  if(n!==null){localStorage.setItem("trav",n.trim());applyName();render();}
+});
+
+/* ---------- core render ---------- */
+function findToday(now){
+  const t=ymd(now);
+  for(let i=0;i<DAYS.length;i++) if(DAYS[i].d===t) return i;
+  if(t<DAYS[0].d) return -1;          // before trip
+  return DAYS.length;                  // after trip
+}
+function setAccent(acc){
+  const c=ACCENTS[acc]||ACCENTS.transit;
+  document.documentElement.style.setProperty("--accent",c);
+  document.documentElement.style.setProperty("--accent-soft",hexA(c,.16));
+  document.body.style.backgroundImage=`radial-gradient(120% 60% at 50% -10%, ${hexA(c,.12)}, transparent 60%)`;
+  document.querySelector('meta[name=theme-color]').setAttribute("content","#0E1A2B");
+}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+
+function render(){
+  const now=new Date();
+  const idx=findToday(now);
+  const name=travelerName();
+  const him=name||"He";
+  const poss=name?(name+"’s"):"His";
+
+  // ----- hero state -----
+  if(idx===-1){ // before departure
+    const dep=new Date(DAYS[0].d+"T00:00:00");
+    const days=Math.ceil((dep-now)/864e5);
+    setAccent("transit");
+    $("heroFlag").textContent="🧳";
+    $("heroCity").textContent="Almost time";
+    $("heroCountry").textContent="The adventure hasn’t started yet";
+    $("dayChip").textContent=days<=0?"Departs today":`${days} day${days>1?"s":""} until takeoff`;
+    $("planLbl").textContent="First up";
+    setList(DAYS[0].acts);
+    clocksTransit(now);
+  } else if(idx>=DAYS.length){ // home
+    setAccent("transit");
+    $("heroFlag").textContent="🏡";
+    $("heroCity").textContent="Home";
+    $("heroCountry").textContent=`${him} made it back · welcome home`;
+    $("dayChip").textContent="Journey complete · 25 days";
+    $("planLbl").textContent="The trip";
+    setList(["Iceland · Norway · Denmark · Greece","Ask him everything 💛"]);
+    clocksTransit(now);
+  } else {
+    const day=DAYS[idx];
+    setAccent(day.acc);
+    $("heroFlag").textContent=day.flag;
+    $("heroCity").textContent=day.city;
+    $("heroCountry").textContent=day.country;
+    $("dayChip").textContent=`Day ${idx+1} of ${DAYS.length} · ${DAYS.length-1-idx} day${DAYS.length-1-idx===1?"":"s"} until home`;
+    $("planLbl").textContent=`Today — ${new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}`;
+    setList(day.acts);
+    clocksLive(day,now,him);
+  }
+
+  // ----- progress -----
+  const pct=idx<0?0:idx>=DAYS.length?100:((idx+0.5)/DAYS.length*100);
+  $("fill").style.width=pct.toFixed(1)+"%";
+  const curPhase=idx<0?"transit":idx>=DAYS.length?"greece":DAYS[idx].phase;
+  const order=["transit","iceland","norway","denmark","greece"];
+  $("stops").innerHTML=STOPS.map(s=>{
+    const done=order.indexOf(s.phase)<order.indexOf(curPhase);
+    const on=s.phase===curPhase&&idx>=0&&idx<DAYS.length;
+    return `<div class="stop ${on?"on":""} ${done?"done":""}"><span class="em">${s.em}</span>${s.n}</div>`;
+  }).join("");
+
+  // ----- timeline -----
+  renderTimeline(idx,poss);
+  applyName();
+}
+function setList(arr){$("planList").innerHTML=arr.map(a=>`<li>${a}</li>`).join("");}
+
+function clocksTransit(now){
+  $("hisLbl").textContent="His time";
+  $("hisTime").innerHTML="✈️ <span class='ap'>in transit</span>";
+  $("hisSub").textContent="somewhere over the map";
+  const[yt,ya]=splitAP(now.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true}));
+  $("yourTime").innerHTML=`${yt}<span class="ap">${ya}</span>`;
+  $("reach").className="reach";$("reachTxt").textContent="Hard to reach while travelling";
+}
+function clocksLive(day,now,him){
+  $("hisLbl").textContent=name_label(him);
+  const hs=timeIn(day.tz,now);const[ht,ha]=splitAP(hs);
+  $("hisTime").innerHTML=`${ht}<span class="ap">${ha}</span>`;
+  $("hisSub").textContent=`in ${day.city}`;
+  const[yt,ya]=splitAP(now.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true}));
+  $("yourTime").innerHTML=`${yt}<span class="ap">${ya}</span>`;
+  const h=hourIn(day.tz,now);
+  const diff=hisOffsetHours(day.tz,now);
+  $("yourSub").textContent=diff===0?"same as him":`${Math.abs(diff)}h ${diff>0?"behind":"ahead of"} him`;
+  const ok=h>=7&&h<22;
+  $("reach").className="reach"+(ok?" ok":"");
+  $("reachTxt").textContent=ok?"Good time to text him":"He’s probably asleep — text lands quietly";
+}
+function name_label(him){return him==="He"?"His time":him+"’s time";}
+function hisOffsetHours(tz,now){
+  // positive => you are behind him (he's ahead)
+  const hh=hourIn(tz,now), yh=now.getHours();
+  let d=hh-yh; if(d>12)d-=24; if(d<-12)d+=24; return d;
+}
+
+function renderTimeline(idx,poss){
+  const tl=$("timeline");
+  tl.innerHTML=DAYS.map((day,i)=>{
+    const cls=i<idx?"past":(i===idx?"now":"");
+    const c=ACCENTS[day.acc];
+    const dlabel=new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    const badge=(i===idx)?`<span class="badge">NOW</span>`:"";
+    const hotel=day.hotel?`<div class="hotel">🛏 <b>${day.hotel}</b></div>`:`<div class="hotel">${day.fg==="✈️"?"In the air":day.fg==="🏡"?"Heading home":"In transit"}</div>`;
+    return `<div class="day ${cls}" style="--c:${c}" ${i===idx?'id="todayCard"':""}>
+      <div class="top"><span class="date">${dlabel}</span><span class="dnum">DAY ${i+1}</span></div>
+      <div class="city"><span class="fg">${day.fg}</span>${day.city}${badge}</div>
+      ${hotel}
+      <div class="acts">${day.acts.map(a=>`<div>${a}</div>`).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- boot ---------- */
+let scrolled=false;
+function tick(){render(); if(!scrolled){const t=$("todayCard"); if(t){t.scrollIntoView({block:"center",behavior:"instant"});} scrolled=true;}}
+applyName();
+render();
+setTimeout(()=>{const t=$("todayCard");if(t)t.scrollIntoView({block:"center"});},150);
+setInterval(render,1000); // live clocks + day rollover
+</script>
+</body>
+</html>
