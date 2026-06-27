@@ -240,8 +240,8 @@
 /* ---------- itinerary data ---------- */
 const ACCENTS={transit:"#92A8C6",iceland:"#6FC6EA",norway:"#4F93C4",denmark:"#74B6AC",greece:"#2F86D1",santorini:"#F0A24E"};
 const DAYS=[
- {d:"2026-06-27",city:"On the way",country:"Overnight flight to Reykjavík",flag:"✈️",fg:"✈️",tz:null,hotel:null,phase:"transit",acc:"transit",
-  acts:["Overnight flight to Reykjavík"],wiki:null,fact:"He's somewhere over the North Atlantic tonight. He'll land into the Icelandic summer, where in late June the sun barely sets."},
+ {d:"2026-06-27",city:"Newark Airport",country:"Departure day · Newark → Reykjavík",flag:"🛫",fg:"🛫",tz:"America/New_York",lat:40.6895,lon:-74.1745,hotel:null,place:"🛫 Newark Liberty (EWR) · overnight flight tonight",phase:"transit",acc:"transit",
+  acts:["At Newark Liberty (EWR), waiting for the overnight flight","Red-eye across the Atlantic — lands in Reykjavík tomorrow morning"],wiki:null,fact:"Tonight he flies the red-eye to Reykjavík (about 5–6 hours). He'll land into the Icelandic summer, where in late June the sun barely sets."},
  {d:"2026-06-28",city:"Reykjavík",country:"Iceland",flag:"🇮🇸",fg:"🇮🇸",tz:"Atlantic/Reykjavik",lat:64.1466,lon:-21.9426,hotel:"Hotel Frón",phase:"iceland",acc:"iceland",
   acts:["Arrive in Reykjavík","Welcome, orientation & get-to-know-you games","Reykjavík sightseeing tour","Welcome dinner"],
   wiki:"Reykjavík",fact:"Reykjavík is the world's northernmost capital. In late June the sun sets near midnight and is back up around 3 a.m."},
@@ -319,6 +319,7 @@ const DAYS=[
 const STOPS=[{em:"✈️",n:"Go",phase:"transit"},{em:"🇮🇸",n:"Iceland",phase:"iceland"},{em:"🇳🇴",n:"Norway",phase:"norway"},{em:"🇩🇰",n:"Denmark",phase:"denmark"},{em:"🇬🇷",n:"Greece",phase:"greece"}];
 // route waypoints in travel order (for the map)
 const ROUTE=[
+ {name:"Newark",ll:[40.6895,-74.1745]},
  {name:"Reykjavík",ll:[64.1466,-21.9426]},
  {name:"Oslo",ll:[59.9139,10.7522]},
  {name:"Copenhagen",ll:[55.6761,12.5683]},
@@ -326,11 +327,11 @@ const ROUTE=[
  {name:"Paros",ll:[37.0856,25.1480]},
  {name:"Santorini",ll:[36.4072,25.4567]},
 ];
-const CITY_WP={"Reykjavík":0,"Oslo":1,"Overnight ferry":2,"Copenhagen":2,"Athens":3,"Paros":4,"Santorini":5,"On the way":0,"Heading home":5};
+const CITY_WP={"Newark Airport":0,"On the way":0,"Reykjavík":1,"Oslo":2,"Overnight ferry":3,"Copenhagen":3,"Athens":4,"Paros":5,"Santorini":6,"Heading home":6};
 // where the "here" pin sits for a given day index
 function hereLatLon(idx){
   if(idx<0) return null;
-  if(idx>=DAYS.length) return ROUTE[3].ll; // home from Athens
+  if(idx>=DAYS.length) return ROUTE[4].ll; // home from Athens
   const day=DAYS[idx];
   if(day.lat) return [day.lat,day.lon];
   if(/ferry/i.test(day.city)) return [57.6,11.6];      // mid-Skagerrak
@@ -572,7 +573,7 @@ function renderTrail(idx,him){
   if(idx<0){el.innerHTML="The trip begins June 27. Tap any day below for photos and facts.";return;}
   if(idx>=DAYS.length){el.innerHTML="Every stop is behind him now — scroll back through the whole adventure.";return;}
   const here=DAYS[idx].city;
-  const cities=[...new Set(DAYS.slice(0,idx).map(d=>d.city).filter(c=>!/ferry|on the way|heading/i.test(c)))];
+  const cities=[...new Set(DAYS.slice(0,idx).map(d=>d.city).filter(c=>!/ferry|on the way|heading|airport/i.test(c)))];
   const been=cities.length?`Been to <b>${cities.join(", ")}</b>. `:"";
   el.innerHTML=`${been}Right now: <b>📍 ${here}</b>. Past days are dimmed, today glows.`;
 }
@@ -586,7 +587,7 @@ function renderTimeline(idx){
     const c=ACCENTS[day.acc];
     const dlabel=new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
     const pill=i<idx?`<span class="pill been">✓ Been here</span>`:(i===idx?`<span class="pill now">📍 Here now</span>`:`<span class="pill next">Day ${i+1}</span>`);
-    const hotel=day.hotel?`<div class="hotel">🛏 <b>${day.hotel}</b></div>`:`<div class="hotel">${day.fg==="✈️"?"In the air":day.fg==="🏡"?"Heading home":"In transit"}</div>`;
+    const hotel=day.hotel?`<div class="hotel">🛏 <b>${day.hotel}</b></div>`:`<div class="hotel">${day.place?day.place:(day.fg==="✈️"?"In the air":day.fg==="🏡"?"Heading home":"In transit")}</div>`;
     const banner=day.wiki?`<div class="banner" data-wiki="${day.wiki.replace(/"/g,'&quot;')}"><img alt="${day.city}"/></div>`:"";
     const flink=day.flight?`<div class="flink"><a target="_blank" rel="noopener" href="https://www.flightradar24.com/data/flights/${day.flight.fr24}">✈️ ${day.flight.code} status ↗</a></div>`:"";
     return `<div class="day ${cls}" style="--c:${c}" ${i===idx?'id="todayCard"':""}>
