@@ -222,10 +222,11 @@ const STOPS=[{em:"✈️",n:"Go",phase:"transit"},{em:"🇮🇸",n:"Iceland",pha
 const $=id=>document.getElementById(id);
 const ymd=dt=>dt.toLocaleDateString("en-CA"); // YYYY-MM-DD in local tz
 function timeIn(tz,now){
-  const f=new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",minute:"2-digit",hour12:true});
-  return f.format(now);
+  if(!tz) return now.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true});
+  return new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",minute:"2-digit",hour12:true}).format(now);
 }
 function hourIn(tz,now){
+  if(!tz) return now.getHours();
   return +new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",hour12:false}).format(now)%24;
 }
 function splitAP(s){const m=s.match(/(.*?)(\s?[AP]M)$/i);return m?[m[1].trim(),m[2].trim()]:[s,""];}
@@ -295,7 +296,7 @@ function render(){
     $("dayChip").textContent=`Day ${idx+1} of ${DAYS.length} · ${DAYS.length-1-idx} day${DAYS.length-1-idx===1?"":"s"} until home`;
     $("planLbl").textContent=`Today — ${new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}`;
     setList(day.acts);
-    clocksLive(day,now,him);
+    if(day.tz) clocksLive(day,now,him); else clocksTransit(now);
   }
 
   // ----- progress -----
