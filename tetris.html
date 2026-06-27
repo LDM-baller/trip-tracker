@@ -82,6 +82,35 @@
   .pad button.rot{border-color:rgba(255,77,210,.4)}
   .pad button.drop{border-color:rgba(46,230,230,.4)}
 
+  /* ---- cat dance celebration ---- */
+  .confetti{position:fixed;inset:0;z-index:38;pointer-events:none;overflow:hidden}
+  .confetti i{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;opacity:.95;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(120vh) rotate(720deg)}}
+  .catshow{position:fixed;left:0;right:0;bottom:0;height:48%;z-index:40;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px}
+  .catshow.hide{display:none}
+  .catshow .cap{font-weight:800;letter-spacing:.14em;font-size:26px;margin-bottom:8px;white-space:nowrap;
+    background:linear-gradient(90deg,var(--neon),var(--neon2));-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 22px rgba(255,77,210,.5);animation:capPop .5s ease}
+  @keyframes capPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+  .catshow .cats{display:flex;gap:4px;align-items:flex-end;transform:translateY(135%)}
+  .catshow.on .cats{animation:catsIn .55s cubic-bezier(.2,1.3,.4,1) forwards}
+  @keyframes catsIn{to{transform:translateY(0)}}
+  .cat{width:clamp(98px,29vw,148px);height:auto;filter:drop-shadow(0 7px 10px rgba(0,0,0,.5));animation:catBob .5s ease-in-out infinite}
+  .cats .cat:nth-child(2){animation-delay:-.25s}
+  @keyframes catBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-15px) rotate(4deg)}}
+  .cat .ear,.cat .arm,.cat .tail{transform-box:fill-box}
+  .cat .ear-l{transform-origin:bottom right;animation:wigL .4s ease-in-out infinite}
+  .cat .ear-r{transform-origin:bottom left;animation:wigR .4s ease-in-out infinite}
+  @keyframes wigL{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(6deg)}}
+  @keyframes wigR{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-6deg)}}
+  .cat .arm-l{transform-origin:50% 18%;animation:armL .45s ease-in-out infinite}
+  .cat .arm-r{transform-origin:50% 18%;animation:armR .45s ease-in-out infinite}
+  @keyframes armL{0%,100%{transform:rotate(24deg)}50%{transform:rotate(-30deg)}}
+  @keyframes armR{0%,100%{transform:rotate(-24deg)}50%{transform:rotate(30deg)}}
+  .cat .tail{transform-origin:bottom right;animation:tailWag .5s ease-in-out infinite}
+  @keyframes tailWag{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(13deg)}}
+
   @media (prefers-reduced-motion: reduce){*{animation:none!important}}
 </style>
 </head>
@@ -121,6 +150,12 @@
     <button class="drop" id="bDrop">⤓<span class="lab">Drop</span></button>
   </div>
 
+  <div class="confetti" id="confetti"></div>
+  <div class="catshow hide" id="catShow">
+    <div class="cap" id="cap">TETRIS!</div>
+    <div class="cats" id="cats"></div>
+  </div>
+
 <script>
 const COLS=10, ROWS=20;
 const COLORS={I:"#2EE6E6",O:"#F4D03F",T:"#B259E6",S:"#46E66B",Z:"#FF5C6C",J:"#4C7CFF",L:"#FF9F45"};
@@ -135,13 +170,71 @@ const SHAPES={
 };
 const KICKS=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 
+/* ---------- the cats (South Park style, matched to the photos) ---------- */
+const CAT1={fur:"#CDBFA8",furDark:"#9A876C",belly:"#EFE8DA",ear:"#E8A9A0",iris:"#8FB96B",nose:"#D98C86",collar:true,tailBig:false};
+const CAT2={fur:"#A6ADB6",furDark:"#6E767F",belly:"#D8DDE2",ear:"#E0A7A6",iris:"#B8C46C",nose:"#C98E8C",collar:false,tailBig:true};
+function catSVG(o){
+  const tail=o.tailBig
+    ? `<path class="tail" d="M32,150 C-14,150 -8,92 26,102 C6,124 16,152 46,150 Z" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/>`
+    : `<path class="tail" d="M36,158 C8,162 8,126 30,128 C20,142 26,156 48,152 Z" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/>`;
+  const collar=o.collar
+    ? `<path d="M58,110 Q80,124 102,110" stroke="#C0392B" stroke-width="7" fill="none" stroke-linecap="round"/>
+       <circle cx="80" cy="120" r="6" fill="#F2C14E" stroke="#1a1a1a" stroke-width="1.5"/><circle cx="80" cy="118" r="1.6" fill="#1a1a1a"/>`
+    : "";
+  return `<svg class="cat" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    ${tail}
+    <ellipse cx="80" cy="150" rx="46" ry="42" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="80" cy="160" rx="24" ry="27" fill="${o.belly}"/>
+    <g class="arm arm-l"><ellipse cx="40" cy="140" rx="9" ry="15" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/></g>
+    <g class="arm arm-r"><ellipse cx="120" cy="140" rx="9" ry="15" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/></g>
+    <ellipse cx="66" cy="190" rx="12" ry="8" fill="${o.belly}" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="94" cy="190" rx="12" ry="8" fill="${o.belly}" stroke="#1a1a1a" stroke-width="3"/>
+    ${collar}
+    <g class="head">
+      <g class="ear ear-l"><path d="M44,46 L40,8 L74,34 Z" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/><path d="M49,40 L47,18 L67,32 Z" fill="${o.ear}"/></g>
+      <g class="ear ear-r"><path d="M116,46 L120,8 L86,34 Z" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/><path d="M111,40 L113,18 L93,32 Z" fill="${o.ear}"/></g>
+      <circle cx="80" cy="66" r="46" fill="${o.fur}" stroke="#1a1a1a" stroke-width="3"/>
+      <g stroke="${o.furDark}" stroke-width="3" stroke-linecap="round" fill="none"><path d="M80,24 L80,40"/><path d="M69,27 L72,42"/><path d="M91,27 L88,42"/></g>
+      <ellipse cx="68" cy="64" rx="15" ry="17" fill="#fff" stroke="#1a1a1a" stroke-width="2.5"/>
+      <ellipse cx="92" cy="64" rx="15" ry="17" fill="#fff" stroke="#1a1a1a" stroke-width="2.5"/>
+      <circle cx="78" cy="66" r="5.5" fill="${o.iris}"/><circle cx="82" cy="66" r="5.5" fill="${o.iris}"/>
+      <circle cx="78" cy="66" r="2.6" fill="#111"/><circle cx="82" cy="66" r="2.6" fill="#111"/>
+      <path d="M75,84 L85,84 L80,90 Z" fill="${o.nose}" stroke="#1a1a1a" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M80,90 q-7,7 -13,3 M80,90 q7,7 13,3" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <g stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"><path d="M52,82 L24,76"/><path d="M52,86 L24,90"/><path d="M108,82 L136,76"/><path d="M108,86 L136,90"/></g>
+    </g>
+  </svg>`;
+}
+const CHEERS=["TETRIS!","NICE ONE!","WOOHOO!","PURRFECT!","YOU ROCK!","DANCE TIME!"];
+let catTimer;
+function celebrate(msg){
+  $("cap").textContent=msg||CHEERS[(Math.random()*CHEERS.length)|0];
+  const el=$("catShow"); el.classList.remove("hide"); void el.offsetWidth; el.classList.add("on");
+  spawnConfetti();
+  if(soundOn) chord([523,659,784,1047,1319],.22);
+  clearTimeout(catTimer);
+  catTimer=setTimeout(()=>{ el.classList.remove("on"); el.classList.add("hide"); },3800);
+}
+function spawnConfetti(){
+  const box=$("confetti"), cols=["#2EE6E6","#FF4DD2","#F4D03F","#46E66B","#FF9F45","#4C7CFF"];
+  for(let i=0;i<28;i++){
+    const s=document.createElement("i");
+    s.style.left=(Math.random()*100)+"vw";
+    s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(1.4+Math.random()*1.2)+"s";
+    s.style.animationDelay=(Math.random()*0.35)+"s";
+    box.appendChild(s);
+    setTimeout(()=>s.remove(),2900);
+  }
+}
+
 const boardC=document.getElementById("board"), bx=boardC.getContext("2d");
 const nextC=document.getElementById("next"), nx=nextC.getContext("2d");
 const $=id=>document.getElementById(id);
 let BLK=24, dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
 
 let grid, cur, nextPiece, bag=[], score=0, lines=0, level=1, best=+(localStorage.getItem("arcadeBest")||0);
-let dropMs=1000, dropAcc=0, lastT=0, running=false, paused=false, gameover=false, started=false, softing=false;
+let dropMs=1000, dropAcc=0, lastT=0, running=false, paused=false, gameover=false, started=false, softing=false, runStartBest=0;
 let particles=[];
 
 /* ---------- sound (WebAudio) ---------- */
@@ -160,10 +253,6 @@ const SND={move:()=>beep(180,.04,"square",.04),rot:()=>beep(330,.05,"triangle",.
   lock:()=>beep(110,.07,"sawtooth",.05),drop:()=>beep(90,.1,"sawtooth",.06),
   clear:n=>{ if(n>=4)chord([523,659,784,1047,1319],.2); else chord([440,587,740].slice(0,n+1),.14); },
   level:()=>chord([659,880,1047],.16), over:()=>chord([330,247,196,147],.28)};
-
-/* ---------- haptics ---------- */
-function buzz(p){ if(navigator.vibrate) try{navigator.vibrate(p);}catch(e){} }
-const HAP={move:8,rot:12,lock:18,drop:[12,18,28],clear:[20,40,30],tetris:[30,40,30,40,60],level:[15,30,15,30],over:[60,40,120]};
 
 /* ---------- setup ---------- */
 function sizeCanvas(){
@@ -210,11 +299,11 @@ function rotate(m,dir){
 function tryRotate(dir){
   if(!running||paused) return;
   const rm=rotate(cur.m,dir);
-  for(const [kx,ky] of KICKS){ if(!collide(cur,kx,ky,rm)){cur.m=rm;cur.x+=kx;cur.y+=ky;SND.rot();buzz(HAP.rot);draw();return;} }
+  for(const [kx,ky] of KICKS){ if(!collide(cur,kx,ky,rm)){cur.m=rm;cur.x+=kx;cur.y+=ky;SND.rot();draw();return;} }
 }
 function move(dx){
   if(!running||paused) return;
-  if(!collide(cur,dx,0)){cur.x+=dx;SND.move();buzz(HAP.move);draw();}
+  if(!collide(cur,dx,0)){cur.x+=dx;SND.move();draw();}
 }
 function softDrop(){
   if(!running||paused) return;
@@ -223,13 +312,13 @@ function softDrop(){
 function hardDrop(){
   if(!running||paused) return;
   let n=0; while(!collide(cur,0,1)){cur.y++;n++;}
-  score+=n*2; SND.drop(); buzz(HAP.drop); lock();
+  score+=n*2; SND.drop(); lock();
 }
 function lock(){
   for(let r=0;r<cur.m.length;r++)for(let c=0;c<cur.m[r].length;c++){
     if(cur.m[r][c]){const y=cur.y+r,x=cur.x+c; if(y>=0)grid[y][x]=cur.type;}
   }
-  SND.lock(); buzz(HAP.lock);
+  SND.lock();
   clearLines();
   spawn();
 }
@@ -244,9 +333,10 @@ function clearLines(){
   score += [0,100,300,500,800][n]*level;
   lines += n;
   const nl=Math.floor(lines/10)+1;
-  if(nl>level){level=nl;dropMs=Math.max(80,Math.round(1000*Math.pow(0.82,level-1)));SND.level();buzz(HAP.level);}
+  if(nl>level){level=nl;dropMs=Math.max(80,Math.round(1000*Math.pow(0.82,level-1)));SND.level();}
   $("flash").classList.remove("on"); void $("flash").offsetWidth; $("flash").classList.add("on");
-  SND.clear(n); buzz(n>=4?HAP.tetris:HAP.clear);
+  SND.clear(n);
+  if(n>=4) celebrate("T E T R I S !");   // the cats dance on a 4-line clear
   updateHUD();
 }
 function burst(c,r,color){
@@ -326,18 +416,19 @@ function loop(t){
 function startGame(){
   ac(); // unlock audio on user gesture
   grid=newGrid(); bag=[]; score=0; lines=0; level=1; dropMs=1000; dropAcc=0; particles=[];
-  gameover=false; paused=false; running=true; started=true;
+  gameover=false; paused=false; running=true; started=true; runStartBest=best;
   nextPiece=null; spawn(); updateHUD();
   $("overlay").classList.add("hide"); $("pauseBtn").textContent="⏸";
   lastT=performance.now(); requestAnimationFrame(loop);
 }
 function endGame(){
-  running=false; gameover=true; SND.over(); buzz(HAP.over);
+  running=false; gameover=true; SND.over();
   $("ovTitle").textContent="GAME OVER";
   const nm=(localStorage.getItem("trav")||"").trim();
   $("ovSub").innerHTML=`Score <b class="big">${score}</b> · Best ${best}<br/>Level ${level} · ${lines} lines`+(nm?`<br/>nice run, ${nm}!`:"");
   $("playBtn").textContent="PLAY AGAIN ▸";
   $("overlay").classList.remove("hide");
+  if(score>runStartBest && score>0) celebrate("NEW HIGH SCORE!");  // a win → cats celebrate
 }
 function togglePause(){
   if(!running) return;
@@ -397,6 +488,7 @@ document.addEventListener("keydown",e=>{
 /* ---------- boot ---------- */
 (function init(){
   grid=newGrid();
+  $("cats").innerHTML=catSVG(CAT1)+catSVG(CAT2);
   const nm=(localStorage.getItem("trav")||"").trim();
   $("ovTitle").textContent="BLOCKS";
   $("ovSub").innerHTML=(nm?`Hey ${nm} — `:"")+"neon retro Tetris.<br/>Best so far: <b>"+best+"</b>";
