@@ -23,6 +23,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
+  html,body{overflow-x:clip}
   body{
     background:var(--ink); color:var(--hi); font-family:var(--sans);
     line-height:1.5; -webkit-font-smoothing:antialiased;
@@ -116,7 +117,9 @@
 
   /* ---------- progress rail ---------- */
   .rail{margin:22px var(--pad) 0}
-  .rail .bar{height:6px;border-radius:6px;background:var(--panel);overflow:hidden;border:1px solid var(--line)}
+  .rail .raillabel{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .rail .raillabel .num{color:var(--accent);letter-spacing:.04em}
+  .rail .bar{height:8px;border-radius:8px;background:var(--panel);overflow:hidden;border:1px solid var(--line)}
   .rail .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#6FC6EA,#4F93C4,#74B6AC,#2F86D1,#F0A24E);transition:width .6s ease}
   .rail .stops{display:flex;justify-content:space-between;margin-top:10px;gap:4px}
   .stop{flex:1;text-align:center;font-size:11px;color:var(--low);font-weight:600;letter-spacing:.02em;opacity:.55;transition:opacity .3s,color .3s}
@@ -219,6 +222,7 @@
   </section>
 
   <section class="rail">
+    <div class="raillabel"><span class="eyebrow">Trip progress</span><span class="eyebrow num" id="railDay">Day 1 of 25</span></div>
     <div class="bar"><div class="fill" id="fill" style="width:0%"></div></div>
     <div class="stops" id="stops"></div>
   </section>
@@ -462,6 +466,7 @@ function render(){
   // progress
   const pct=idx<0?0:idx>=DAYS.length?100:((idx+0.5)/DAYS.length*100);
   $("fill").style.width=pct.toFixed(1)+"%";
+  $("railDay").textContent=idx<0?"Not started yet":idx>=DAYS.length?"Complete ✓":`Day ${idx+1} of ${DAYS.length}`;
   const curPhase=idx<0?"transit":idx>=DAYS.length?"greece":DAYS[idx].phase;
   const order=["transit","iceland","norway","denmark","greece"];
   $("stops").innerHTML=STOPS.map(s=>{
