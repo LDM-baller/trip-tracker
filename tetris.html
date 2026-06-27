@@ -336,7 +336,6 @@ function clearLines(){
   if(nl>level){level=nl;dropMs=Math.max(80,Math.round(1000*Math.pow(0.82,level-1)));SND.level();}
   $("flash").classList.remove("on"); void $("flash").offsetWidth; $("flash").classList.add("on");
   SND.clear(n);
-  if(n>=4) celebrate("T E T R I S !");   // the cats dance on a 4-line clear
   updateHUD();
 }
 function burst(c,r,color){
@@ -428,7 +427,7 @@ function endGame(){
   $("ovSub").innerHTML=`Score <b class="big">${score}</b> · Best ${best}<br/>Level ${level} · ${lines} lines`+(nm?`<br/>nice run, ${nm}!`:"");
   $("playBtn").textContent="PLAY AGAIN ▸";
   $("overlay").classList.remove("hide");
-  if(score>runStartBest && score>0) celebrate("NEW HIGH SCORE!");  // a win → cats celebrate
+  celebrate(score>runStartBest && score>0 ? "NEW HIGH SCORE!" : "GOOD GAME!");  // cats dance after every game
 }
 function togglePause(){
   if(!running) return;
