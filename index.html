@@ -616,12 +616,14 @@ function renderTimeline(idx){
 }
 
 /* ---------- boot ---------- */
+if("scrollRestoration" in history) history.scrollRestoration="manual";
+window.scrollTo(0,0);
 applyName();
 initMap();
 render();
 if(map) updateMap(findToday(new Date()));
 loadWeather((findToday(new Date())>=0&&findToday(new Date())<DAYS.length)?DAYS[findToday(new Date())]:null);
-setTimeout(()=>{const t=$("todayCard");if(t)t.scrollIntoView({block:"center"});},250);
+window.addEventListener("load",()=>window.scrollTo(0,0));
 setInterval(render,1000);
 setInterval(()=>{const i=findToday(new Date());loadWeather((i>=0&&i<DAYS.length)?DAYS[i]:null);},600000);
 </script>
