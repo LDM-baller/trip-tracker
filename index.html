@@ -16,6 +16,7 @@
     --panel:#16263B; --panel-2:#1D324C; --line:#26405E;
     --hi:#F2F6FB; --mid:#9DB2CC; --low:#6E84A0;
     --accent:#6FC6EA; --accent-soft:rgba(111,198,234,.16);
+    --theme-grad:linear-gradient(125deg,#2b6f8f,#6a4f9e);
     --good:#79D9A6; --sleep:#7E8DA8;
     --serif:"Palatino Linotype","Iowan Old Style","Hoefler Text",Palatino,Georgia,serif;
     --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -32,7 +33,23 @@
     background-image:radial-gradient(120% 60% at 50% -10%, rgba(111,198,234,.10), transparent 60%);
     transition:background-image .8s ease;
   }
-  .wrap{max-width:520px;margin:0 auto;padding:0 0 48px}
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 48px;position:relative;z-index:1}
+  /* aurora / Aegean light wash behind the top of the page */
+  .aurora{position:fixed;top:0;left:0;right:0;height:46vh;z-index:0;pointer-events:none;
+    background:var(--theme-grad);filter:blur(72px) saturate(1.25);opacity:.42;
+    transition:background .9s ease,opacity .9s ease}
+  /* mountain-range / sawtooth divider, tinted to wherever he is */
+  .rangeband{height:12px;margin:8px var(--pad) 2px;background-color:var(--accent);opacity:.5;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='18'%20height='12'%3E%3Cpath%20d='M0,12L9,0L18,12Z'%20fill='black'/%3E%3C/svg%3E") 0 0/18px 12px repeat-x;
+            mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='18'%20height='12'%3E%3Cpath%20d='M0,12L9,0L18,12Z'%20fill='black'/%3E%3C/svg%3E") 0 0/18px 12px repeat-x;
+    transition:background-color .8s ease}
+  /* collapsed past days */
+  .pasttoggle{display:block;width:100%;text-align:center;margin:0 0 12px;cursor:pointer;
+    background:var(--panel);border:1px dashed var(--line);color:var(--mid);border-radius:12px;
+    padding:10px;font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.04em}
+  .pasttoggle:active{transform:scale(.99)}
+  .pastdays{display:flex;flex-direction:column}
+  .pastdays.collapsed{display:none}
   .num{font-variant-numeric:tabular-nums}
   .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--low);font-weight:600}
   img{max-width:100%;display:block}
@@ -207,11 +224,14 @@
 </style>
 </head>
 <body>
+<div class="aurora" id="aurora" aria-hidden="true"></div>
 <div class="wrap">
   <header class="mast">
     <div class="title">Following the Journey<small>Iceland · Norway · Denmark · Greece</small></div>
     <button class="nameBtn" id="nameBtn">Set name</button>
   </header>
+
+  <div class="rangeband" aria-hidden="true"></div>
 
   <section class="hero" id="hero">
     <div class="where">
@@ -286,6 +306,15 @@
 <script>
 /* ---------- itinerary data ---------- */
 const ACCENTS={transit:"#92A8C6",iceland:"#6FC6EA",norway:"#4F93C4",denmark:"#74B6AC",greece:"#2F86D1",santorini:"#F0A24E"};
+// region mood gradients — Icelandic aurora → fjords → hygge → Aegean → caldera sunset
+const THEME={
+  transit:"linear-gradient(125deg,#2b6f8f,#6a4f9e)",
+  iceland:"linear-gradient(125deg,#1fb6c9 0%,#3fd29a 45%,#7b5cff 100%)",
+  norway:"linear-gradient(125deg,#1f7fa6 0%,#2bb0a3 55%,#1d5f86 100%)",
+  denmark:"linear-gradient(125deg,#e0a85c 0%,#d96c6c 42%,#3f6f9e 100%)",
+  greece:"linear-gradient(125deg,#2f86d1 0%,#57b6e8 45%,#f0c674 100%)",
+  santorini:"linear-gradient(125deg,#f0a24e 0%,#ff6f9e 45%,#3e7fd0 100%)",
+};
 const DAYS=[
  {d:"2026-06-27",city:"Newark Airport",country:"Departure day · Newark → Reykjavík",flag:"🛫",fg:"🛫",tz:"America/New_York",lat:40.6895,lon:-74.1745,hotel:null,place:"🛫 Newark Liberty (EWR) · overnight flight tonight",phase:"transit",acc:"transit",
   acts:["At Newark Liberty (EWR), waiting for the overnight flight","Red-eye across the Atlantic — lands in Reykjavík tomorrow morning"],wiki:null,fact:"Tonight he flies the red-eye to Reykjavík (about 5–6 hours). He'll land into the Icelandic summer, where in late June the sun barely sets."},
@@ -476,6 +505,7 @@ function setAccent(acc){
   const c=ACCENTS[acc]||ACCENTS.transit;
   document.documentElement.style.setProperty("--accent",c);
   document.documentElement.style.setProperty("--accent-soft",hexA(c,.16));
+  document.documentElement.style.setProperty("--theme-grad",THEME[acc]||THEME.transit);
   document.body.style.backgroundImage=`radial-gradient(120% 60% at 50% -10%, ${hexA(c,.12)}, transparent 60%)`;
 }
 
@@ -639,7 +669,7 @@ function renderTrail(idx,him){
 let io;
 function renderTimeline(idx){
   const tl=$("timeline");
-  tl.innerHTML=DAYS.map((day,i)=>{
+  const card=(day,i)=>{
     const cls=i<idx?"past":(i===idx?"now":"");
     const c=ACCENTS[day.acc];
     const dlabel=new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
@@ -659,7 +689,22 @@ function renderTimeline(idx){
         <div class="fact"><b>Did you know</b>${day.fact}</div>
       </div>
     </div>`;
-  }).join("");
+  };
+  const pastCount = idx>0 ? Math.min(idx,DAYS.length) : 0;
+  let html="";
+  if(pastCount>0){
+    html += `<button class="pasttoggle" id="pastToggle" aria-expanded="false">▸ Show ${pastCount} earlier day${pastCount>1?"s":""}</button>`;
+    html += `<div class="pastdays collapsed" id="pastDays">`+DAYS.slice(0,pastCount).map((d,i)=>card(d,i)).join("")+`</div>`;
+  }
+  const startF = idx<0?0:Math.min(idx,DAYS.length);
+  html += DAYS.slice(startF).map((d,i)=>card(d,startF+i)).join("");
+  tl.innerHTML=html;
+  const pt=$("pastToggle");
+  if(pt) pt.addEventListener("click",()=>{
+    const collapsed=$("pastDays").classList.toggle("collapsed");
+    pt.setAttribute("aria-expanded",collapsed?"false":"true");
+    pt.innerHTML=collapsed?`▸ Show ${pastCount} earlier day${pastCount>1?"s":""}`:"▾ Hide earlier days";
+  });
   // lazy-load banner images as they scroll into view
   if(io) io.disconnect();
   io=new IntersectionObserver((entries)=>{
