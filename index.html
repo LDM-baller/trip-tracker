@@ -50,6 +50,19 @@
   .pasttoggle:active{transform:scale(.99)}
   .pastdays{display:flex;flex-direction:column}
   .pastdays.collapsed{display:none}
+  /* Nordic leg: faint snow / starfield */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1s ease;
+    background-image:radial-gradient(rgba(255,255,255,.55) 1px,transparent 1.7px);background-size:24px 24px}
+  body[data-leg="nordic"]::before{opacity:.10}
+  /* Greek leg: the divider becomes a Greek-key (meander) border */
+  body[data-leg="aegean"] .rangeband{height:14px;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='14'%3E%3Cpath%20d='M0,2V12H12V2H24'%20fill='none'%20stroke='black'%20stroke-width='2.6'/%3E%3C/svg%3E") 0 center/24px 14px repeat-x;
+            mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='14'%3E%3Cpath%20d='M0,2V12H12V2H24'%20fill='none'%20stroke='black'%20stroke-width='2.6'/%3E%3C/svg%3E") 0 center/24px 14px repeat-x}
+  /* themed section headers — accent tick that shifts with his location */
+  .maps>.eyebrow,.postcard>.eyebrow,.tl>.eyebrow{display:flex;align-items:center;gap:9px}
+  .maps>.eyebrow::before,.postcard>.eyebrow::before,.tl>.eyebrow::before{
+    content:"";flex:none;width:18px;height:2px;border-radius:2px;background:var(--accent);
+    box-shadow:0 0 8px var(--accent);transition:background .8s ease}
   .num{font-variant-numeric:tabular-nums}
   .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--low);font-weight:600}
   img{max-width:100%;display:block}
@@ -289,6 +302,7 @@
     <div id="timeline"></div>
   </section>
 
+  <div class="rangeband" aria-hidden="true"></div>
   <footer>
     <div class="eyebrow">Westcoast Connection · Program ICE1</div>
     25 days · 4 countries · home July 21<br/>
@@ -506,6 +520,7 @@ function setAccent(acc){
   document.documentElement.style.setProperty("--accent",c);
   document.documentElement.style.setProperty("--accent-soft",hexA(c,.16));
   document.documentElement.style.setProperty("--theme-grad",THEME[acc]||THEME.transit);
+  document.body.dataset.leg=(acc==="greece"||acc==="santorini")?"aegean":(acc==="iceland"||acc==="norway"||acc==="denmark")?"nordic":"transit";
   document.body.style.backgroundImage=`radial-gradient(120% 60% at 50% -10%, ${hexA(c,.12)}, transparent 60%)`;
 }
 
