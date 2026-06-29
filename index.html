@@ -130,6 +130,15 @@
   .leaflet-control-attribution a{color:var(--mid)!important}
   .leaflet-bar a{background:var(--panel)!important;color:var(--hi)!important;border-color:var(--line)!important}
   .wptip{background:var(--panel);color:var(--hi);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:600;box-shadow:none}
+  .mapbtns{display:flex;gap:8px;margin-bottom:10px}
+  .mapbtn{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--mid);border-radius:10px;
+    padding:9px;font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:.2s}
+  .mapbtn.on{color:#08121f;background:var(--accent);border-color:var(--accent)}
+  .mapbtn:active{transform:scale(.98)}
+  .poitip{background:var(--panel)!important;color:var(--hi)!important;border:1px solid var(--line)!important;
+    border-radius:8px!important;padding:3px 8px!important;font-size:11.5px!important;font-weight:600;box-shadow:none!important}
+  .poitip.today{background:var(--accent)!important;color:#08121f!important;border-color:var(--accent)!important;font-weight:800}
+  .leaflet-tooltip.poitip::before{display:none}
   .ping{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #08121f;box-shadow:0 0 0 0 var(--accent)}
   @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 70%,transparent)}70%{box-shadow:0 0 0 16px transparent}100%{box-shadow:0 0 0 0 transparent}}
   .ping{animation:pulse 2s infinite}
@@ -279,6 +288,10 @@
 
   <section class="maps">
     <div class="eyebrow" id="mapLbl">His route</div>
+    <div class="mapbtns">
+      <button class="mapbtn on" id="mapToday">📍 His day</button>
+      <button class="mapbtn" id="mapAll">🗺 Whole trip</button>
+    </div>
     <div id="map"></div>
   </section>
 
@@ -418,6 +431,46 @@ const ROUTE=[
  {name:"Santorini",ll:[36.4072,25.4567]},
 ];
 const CITY_WP={"Newark Airport":0,"On the way":0,"Reykjavík":1,"Oslo":2,"Overnight ferry":3,"Copenhagen":3,"Athens":4,"Paros":5,"Santorini":6,"Heading home":6};
+// specific destinations, each tied to the day (index into DAYS) it happens
+const POIS=[
+ {di:1,n:"Hallgrímskirkja",ll:[64.1417,-21.9266]},
+ {di:2,n:"Sólheimajökull glacier",ll:[63.5310,-19.3690]},
+ {di:2,n:"Skógafoss",ll:[63.5320,-19.5114]},
+ {di:2,n:"Seljalandsfoss",ll:[63.6156,-19.9886]},
+ {di:2,n:"Reynisfjara black sand beach",ll:[63.4027,-19.0448]},
+ {di:2,n:"Dyrhólaey",ll:[63.4006,-19.1283]},
+ {di:3,n:"Þingvellir N.P.",ll:[64.2559,-21.1295]},
+ {di:3,n:"Geysir",ll:[64.3104,-20.3024]},
+ {di:3,n:"Gullfoss",ll:[64.3271,-20.1199]},
+ {di:3,n:"Hvítá river rafting",ll:[64.0830,-20.3000]},
+ {di:4,n:"Whale watching (Faxaflói)",ll:[64.1700,-21.9800]},
+ {di:4,n:"Blue Lagoon",ll:[63.8804,-22.4495]},
+ {di:6,n:"Holmenkollen zipline",ll:[59.9637,10.6680]},
+ {di:7,n:"Kon-Tiki Museum",ll:[59.9036,10.6996]},
+ {di:7,n:"Viking Planet",ll:[59.9112,10.7335]},
+ {di:7,n:"SkiMore climbing park",ll:[59.9870,10.6660]},
+ {di:8,n:"Malmøya island",ll:[59.8660,10.7560]},
+ {di:8,n:"Oslofjord floating sauna",ll:[59.9050,10.7480]},
+ {di:9,n:"MUNCH Museum",ll:[59.9061,10.7546]},
+ {di:9,n:"DFDS ferry terminal",ll:[59.9010,10.7370]},
+ {di:10,n:"Nyhavn",ll:[55.6797,12.5912]},
+ {di:11,n:"Tivoli Gardens",ll:[55.6737,12.5681]},
+ {di:11,n:"The Little Mermaid",ll:[55.6929,12.5993]},
+ {di:12,n:"Møns Klint",ll:[54.9697,12.5480]},
+ {di:13,n:"National Museum of Denmark",ll:[55.6741,12.5757]},
+ {di:14,n:"Plaka",ll:[37.9725,23.7300]},
+ {di:15,n:"Alimos Marina sail",ll:[37.9106,23.7008]},
+ {di:16,n:"The Acropolis",ll:[37.9715,23.7257]},
+ {di:16,n:"Acropolis Museum",ll:[37.9686,23.7286]},
+ {di:17,n:"Aliki sunset cruise",ll:[37.0186,25.1356]},
+ {di:18,n:"Naoussa",ll:[37.1247,25.2378]},
+ {di:19,n:"Antiparos",ll:[37.0376,25.0856]},
+ {di:19,n:"Parikia",ll:[37.0855,25.1493]},
+ {di:20,n:"Fira",ll:[36.4167,25.4324]},
+ {di:21,n:"Oia",ll:[36.4618,25.3753]},
+ {di:22,n:"Nea Kameni volcano",ll:[36.4040,25.3960]},
+ {di:22,n:"Palea Kameni hot springs",ll:[36.3950,25.4080]},
+];
 // where the "here" pin sits for a given day index
 function hereLatLon(idx){
   if(idx<0) return null;
@@ -635,7 +688,7 @@ function loadFlight(idx){
 }
 
 /* route map (Leaflet + CARTO dark, no key) */
-let map, doneLine, restLine, hereMarker, wpLayer;
+let map, doneLine, restLine, hereMarker, wpLayer, poiLayer, mapView="today";
 function accentNow(){return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#6FC6EA";}
 function initMap(){
   if(typeof L==="undefined"){return;}
@@ -646,28 +699,50 @@ function initMap(){
   restLine=L.polyline(ll,{color:"#41607f",weight:2,opacity:.5,dashArray:"4 7"}).addTo(map);
   doneLine=L.polyline([],{color:accentNow(),weight:3.5,opacity:.95}).addTo(map);
   wpLayer=L.layerGroup().addTo(map);
+  poiLayer=L.layerGroup().addTo(map);
   map.fitBounds(ll,{padding:[34,34]});
   setTimeout(()=>map.invalidateSize(),200);
 }
 function updateMap(idx){
   if(!map) return;
-  const wp = idx<0?0 : idx>=DAYS.length?5 : (CITY_WP[DAYS[idx].city]??0);
+  const wp = idx<0?0 : idx>=DAYS.length?6 : (CITY_WP[DAYS[idx].city]??0);
   doneLine.setStyle({color:accentNow()});
   doneLine.setLatLngs(ROUTE.slice(0,wp+1).map(r=>r.ll));
   wpLayer.clearLayers();
   ROUTE.forEach((r,i)=>{
     const done=i<=wp;
     L.circleMarker(r.ll,{radius:5,weight:2,color:done?accentNow():"#6E84A0",
-      fillColor:done?accentNow():"#2b425f",fillOpacity:1,opacity:1})
+      fillColor:done?accentNow():"#2b425f",fillOpacity:.3,opacity:.85})
       .bindTooltip(r.name,{className:"wptip",direction:"top",offset:[0,-6]})
       .addTo(wpLayer);
   });
+  // specific day-by-day destinations
+  poiLayer.clearLayers();
+  POIS.forEach(p=>{
+    const day=DAYS[p.di], c=ACCENTS[day.acc];
+    const st=p.di<idx?"past":(p.di===idx?"today":"future"), today=st==="today";
+    const mk=L.circleMarker(p.ll,{radius:today?6:4,weight:today?2:1,
+      color:today?accentNow():(st==="past"?"#5a6a80":"#93a6c1"),
+      fillColor:today?accentNow():(st==="past"?"#39495f":c),
+      fillOpacity:st==="past"?.55:.95,opacity:st==="past"?.6:1});
+    const dl=new Date(day.d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    if(today) mk.bindTooltip(p.n,{permanent:true,direction:"top",className:"poitip today",offset:[0,-5]});
+    else mk.bindTooltip(`<b>${p.n}</b><br>Day ${p.di+1} · ${dl}`,{direction:"top",className:"poitip",offset:[0,-5]});
+    poiLayer.addLayer(mk);
+  });
   const here=hereLatLon(idx);
   if(hereMarker){map.removeLayer(hereMarker);hereMarker=null;}
-  if(here){
-    hereMarker=L.marker(here,{icon:L.divIcon({className:"",html:'<div class="ping"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
-  }
+  if(here) hereMarker=L.marker(here,{icon:L.divIcon({className:"",html:'<div class="ping"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
+  if(mapView==="today") focusDay(idx); else focusAll();
 }
+function focusDay(idx){
+  if(!map) return;
+  const pts=POIS.filter(p=>p.di===idx).map(p=>p.ll);
+  if(pts.length) map.fitBounds(pts,{padding:[55,55],maxZoom:11});
+  else { const h=hereLatLon(idx); if(h) map.setView(h,6); else focusAll(); }
+}
+function focusAll(){ if(map) map.fitBounds(ROUTE.map(r=>r.ll),{padding:[34,34]}); }
+function setMapBtns(){ $("mapToday").classList.toggle("on",mapView==="today"); $("mapAll").classList.toggle("on",mapView==="all"); }
 
 /* trail summary */
 function renderTrail(idx,him){
@@ -755,6 +830,8 @@ function catConfetti(){
 }
 $("cats").innerHTML=CATS_HTML;
 $("catBtn").addEventListener("click",()=>showCats());
+$("mapToday").addEventListener("click",()=>{mapView="today";setMapBtns();focusDay(findToday(new Date()));});
+$("mapAll").addEventListener("click",()=>{mapView="all";setMapBtns();focusAll();});
 
 /* ---------- boot ---------- */
 if("scrollRestoration" in history) history.scrollRestoration="manual";
